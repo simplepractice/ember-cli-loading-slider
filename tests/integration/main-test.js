@@ -1,7 +1,6 @@
-import { later } from '@ember/runloop';
 import { module, test } from 'qunit';
-import { setupApplicationTest } from 'ember-qunit';
-import { visit, find, findAll } from '@ember/test-helpers';
+import {setupApplicationTest} from 'ember-qunit';
+import { visit, find, findAll, click, waitUntil } from '@ember/test-helpers';
 
 module('Acceptance | Main', function(hooks) {
   setupApplicationTest(hooks);
@@ -15,39 +14,43 @@ module('Acceptance | Main', function(hooks) {
   });
 
   test('testing animation', async function(assert) {
-    assert.expect(2);
+    assert.expect(0);
 
     await visit('/');
 
-    // use the jQuery click rather than the promise observing click
-    await findAll('button')[1].click();
+    click('[data-test-expanding-animation-button]')
 
-    later(async () => {
-      assert.equal(await findAll('.loading-slider span')[1].clientWidth > 0, true, 'The slider has animated');
-    }, 500);
+    await waitUntil(() => findAll('.loading-slider span')[1]?.clientWidth > 0, {
+      timeout: 500,
+      timeoutMessage: 'The slider has not animated'
+    })
 
-    later(async () => {
-      assert.equal(await findAll('.loading-slider span').length === 0, true, 'The slider has reset');
-    }, 1500);
+    await waitUntil(() =>  findAll('.loading-slider span').length === 0, {
+      timeout: 1500,
+      timeoutMessage: 'The slider has not reset'
+    })
   });
 
   test('testing multi-color centered animation', async function(assert) {
+    assert.expect(0);
     await visit('/');
 
-    // use the jQuery click rather than the promise observing click
-    await findAll('button')[2].click();
+    click('[data-test-multi-expanding-animation-button]')
 
-    later(async () => {
-      assert.equal(await findAll('.loading-slider span')[1].clientWidth > 0, true, 'The slider has animated');
-    }, 1000);
+    await waitUntil(() =>  findAll('.loading-slider span')[1]?.clientWidth > 0, {
+      timeout: 500,
+      timeoutMessage: 'The slider has not animated'
+    });
 
-    later(() => {
-      assert.equal(findAll('.loading-slider span').length > 2, true, 'There are multiple sliders');
-    }, 1500);
+    await waitUntil(() =>  findAll('.loading-slider span').length > 2, {
+      timeout: 1500,
+      timeoutMessage: 'There are no multiple sliders'
+    });
 
-    later(() => {
-      assert.equal(findAll('.loading-slider span').length === 0, true, 'The slider has reset');
-    }, 5500);
+    await waitUntil(() =>  findAll('.loading-slider span').length === 0, {
+      timeout: 5500,
+      timeoutMessage: 'The slider has not reset'
+    });
   });
 });
 

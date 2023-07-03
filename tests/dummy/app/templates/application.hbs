@@ -3,16 +3,16 @@
 <h2 id='title'>Welcome to Ember.js</h2>
 
 <ul>
-  <li>{{link-to 'Home' 'index'}}</li>
-  <li>{{link-to 'Two Second Transition' 'two'}}</li>
-  <li>{{link-to '75ms Transition' '75'}}</li>
-  <li>{{link-to 'Orange 500ms Transition' 'orange'}}</li>
+  <li><LinkTo @route="index">Home</LinkTo></li>
+  <li><LinkTo @route="two">Two Second Transition</LinkTo></li>
+  <li><LinkTo @route="75">75ms Transition</LinkTo></li>
+  <li><LinkTo @route="orange">Orange 500ms Transition</LinkTo></li>
 </ul>
 
 <p>
-  <button {{action 'showAnimation'}}>Show for 1 second</button>
-  <button {{action 'showExpandingAnimation'}}>Show an expanding animation</button>
-  <button {{action 'showMultiExpandingAnimation'}}>Show a fancy expanding animation</button>
+  <button {{action 'showAnimation'}} data-test-animation-button>Show for 1 second</button>
+  <button {{action 'showExpandingAnimation'}} data-test-expanding-animation-button>Show an expanding animation</button>
+  <button {{action 'showMultiExpandingAnimation'}} data-test-multi-expanding-animation-button>Show a fancy expanding animation</button>
 </p>
 
 <div class="boxed">
