@@ -8,10 +8,10 @@ export default Route.extend(LoadingSliderMixin, {
   loadingSlider: service(),
 
   model: function(params, transition) {
-    if ( ! Ember.testing) {
-      later(this, function() {
+    if (!Ember.testing) {
+      later(this, () => {
         transition.send('showMultiExpandingAnimation');
-      }, 100);
+      }, 2500);
     }
   },
   actions: {
@@ -26,6 +26,10 @@ export default Route.extend(LoadingSliderMixin, {
 
       this.send('loading');
       later(this, function() {
+        if (this.isDestroying || this.isDestroyed) {
+          return;
+        }
+
         this.send('finished');
       }, 1000);
     },
@@ -38,6 +42,10 @@ export default Route.extend(LoadingSliderMixin, {
 
       this.send('loading');
       later(this, function() {
+        if (this.isDestroying || this.isDestroyed) {
+          return;
+        }
+
         this.send('finished');
       }, 5000);
     },
@@ -48,6 +56,10 @@ export default Route.extend(LoadingSliderMixin, {
         color: false
       });
       later(this, function() {
+        if (this.isDestroying || this.isDestroyed) {
+          return;
+        }
+
         this.send('finished');
       }, 1000);
     }

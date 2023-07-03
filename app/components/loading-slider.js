@@ -1,8 +1,6 @@
 import { inject as service } from '@ember/service';
 import Component from '@ember/component';
-import { run } from '@ember/runloop';
-import { isBlank } from '@ember/utils';
-import $ from 'jquery';
+import { once, later } from '@ember/runloop';
 
 export default Component.extend({
   tagName: 'div',
@@ -17,7 +15,7 @@ export default Component.extend({
 
     if (isFastBoot()) { return; }
 
-    run.once(this, function() {
+    once(this, function() {
       this.get('loadingSlider').on('startLoading', this, this._startLoading);
       this.get('loadingSlider').on('endLoading', this, this._endLoading);
       this.get('loadingSlider').on('changeAttrs', this, this._changeAttrs);
@@ -40,8 +38,8 @@ export default Component.extend({
     this.manage();
   },
 
-  willDestroy() {
-    run.once(this, function() {
+  willDestroyElement() {
+    once(this, function() {
       this.get('loadingSlider').off('startLoading', this, this._startLoading);
       this.get('loadingSlider').off('endLoading', this, this._endLoading);
       this.get('loadingSlider').off('changeAttrs', this, this._changeAttrs);
@@ -63,7 +61,7 @@ export default Component.extend({
   },
 
   manage() {
-    if (isBlank(this.$())) {
+    if (!this.element) {
       return;
     }
 
@@ -82,22 +80,24 @@ export default Component.extend({
     this.set('isLoaded', false);
     let self = this,
         elapsedTime = 0,
-        inner = $(`<span class="loading-slider__progress ${this.get('progressBarClass')}">`),
-        outer = this.$(),
-        duration = this.getWithDefault('duration', 300),
+        inner = document.createElement('span'),
+        outer = this.element,
+        duration = this.get('duration') ?? 300,
         innerWidth = 0,
-        outerWidth = this.$().width(),
+        outerWidth = this.element.getBoundingClientRect().width,
         stepWidth = Math.round(outerWidth / 50),
         color = this.get('color');
 
-    outer.append(inner);
+    inner.classList.add('loading-slider__progress', this.get('progressBarClass'))
+    outer.appendChild(inner);
     if (color) {
-      inner.css('background-color', color);
+      inner.style.backgroundColor = color;
     }
 
     let interval = window.setInterval(function() {
       elapsedTime = elapsedTime + 10;
-      inner.width(innerWidth = innerWidth + stepWidth);
+      innerWidth = innerWidth + stepWidth;
+      inner.style.width = innerWidth + 'px';
 
       // slow the animation if we used more than 75% the estimated duration
       // or 66% of the animation width
@@ -109,8 +109,8 @@ export default Component.extend({
       }
 
       if (innerWidth > outerWidth) {
-        run.later(function() {
-          outer.empty();
+        later(function() {
+          outer.innerHTML = '';
           window.clearInterval(interval);
         }, 50);
       }
@@ -129,8 +129,8 @@ export default Component.extend({
 
   expandingAnimate() {
     let self = this,
-        outer = this.$(),
-        speed = this.getWithDefault('speed', 1000),
+        outer = this.element,
+        speed = this.get('speed') ?? 1000,
         colorQueue = this.get('color');
 
     if ('object' === typeof colorQueue) {
@@ -142,7 +142,7 @@ export default Component.extend({
         colorQueue.push(color);
         self.expandItem.call(self, color);
         if ( ! self.get('isLoading')) {
-          outer.empty();
+          outer.innerHTML = '';
         } else {
           window.setTimeout(updateFn, speed);
         }
@@ -153,46 +153,35 @@ export default Component.extend({
   },
 
   expandItem(color, cleanUp) {
-    let inner = $('<span>').css({'background-color': color}),
-        outer = this.$(),
+    let inner = document.createElement('span'),
+        outer = this.element,
         innerWidth = 0,
-        outerWidth = outer.width(),
+        outerWidth = outer.getBoundingClientRect().width,
         stepWidth = Math.round(outerWidth / 50);
-    let ua = window.navigator.userAgent;
-    let ie10 = ua.indexOf("MSIE "),
-        ie11 = ua.indexOf('Trident/'),
-        ieEdge = ua.indexOf('Edge/');
 
-    outer.append(inner);
+    inner.style.backgroundColor = color;
+    outer.appendChild(inner);
 
     let interval = window.setInterval(function() {
       let step = (innerWidth = innerWidth + stepWidth);
       if (innerWidth > outerWidth) {
         window.clearInterval(interval);
         if (cleanUp) {
-          outer.empty();
+          outer.innerHTML = '';
         }
       }
-      if (ie10 > 0 || ie11 > 0 || ieEdge > 0) {
-        inner.css({
-          'margin': '0 auto',
-          'width': step
-        });
-      } else {
-        inner.css({
-          'margin-left': '-' + step / 2 + 'px',
-          'width': step
-        });
-      }
+      inner.style.width = step + 'px';
+      inner.style.marginLeft = '-' + step / 2 + 'px';
     }, 10);
   },
 
   didInsertElement() {
-    this.$().html('<span>');
+    let spanElement = document.createElement('span');
+    let color = this.get('color');
 
-    var color = this.get('color');
+    this.element.appendChild(spanElement)
     if (color) {
-      this.$('span').css('background-color', color);
+      spanElement.style.backgroundColor = color;
     }
 
     if (this.get('runManageInitially')) {

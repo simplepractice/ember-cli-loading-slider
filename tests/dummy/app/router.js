@@ -1,15 +1,15 @@
 import EmberRouter from '@ember/routing/router';
-import config from './config/environment';
+import config from 'dummy/config/environment';
 
-const Router = EmberRouter.extend({
-  location: config.locationType,
-  rootURL: config.rootURL
-});
+class Router extends EmberRouter {
+  location = config.locationType;
+  rootURL = config.rootURL;
+}
 
 Router.map(function() {
-  this.route('two', { path: '/two' });
-  this.route('75', { path: '/75' });
-  this.route('orange', { path: '/orange' });
+  this.route('two');
+  this.route('75');
+  this.route('orange');
 });
 
 export default Router;
